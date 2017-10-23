@@ -5,7 +5,15 @@ use yii\widgets\LinkPager;
 
  ?>
  
+<style>
+td,th{
+	word-wrap:break-word; width:200px;display:inline-block;
+}
+th{
+	height:50px;
+}
 
+</style>
 
 
 <body>
@@ -22,7 +30,7 @@ use yii\widgets\LinkPager;
 							<th>
 								请求参数
 							</th>
-							<th>
+							<th style="width:330px;">
 								返回参数
 							</th>
 							<!--<th>
@@ -40,10 +48,10 @@ use yii\widgets\LinkPager;
 
 						<?php foreach($list as $k=>$v):?>
 							<tr>
-								<td onclick="displayContent('<?php echo $v['url']?>',this)" date-type="1"><?php echo mb_substr($v['request_url'],0,30, 'utf-8').'....'; ?></td>
-								<td onclick="displayContent('<?php echo $v['url']?>',this)" date-type="2"><?php echo mb_substr($v['request_param'],0,30,'utf-8').'....'; ?></td>
-								<td onclick="displayContent('<?php echo $v['url']?>',this)" date-type="3"><?php echo mb_substr($v['response_param'],0,30,'utf-8').'....'; ?></td>
-								<!--<td onclick="displayContent('<?php echo $v['url']?>',this)" date-type="4"><?php echo mb_substr($v['info'],0,30,'utf-8').'....'; ?></td>-->
+								<td  onclick="displayContent('<?php echo $v['url']?>',this)" date-type="1"><?php echo $v['request_url']?></td>
+								<td onclick="displayContent('<?php echo $v['url']?>',this)" date-type="2"><?php echo $v['request_param'] ?></td>
+								<td style="width:330px;" onclick="displayContent('<?php echo $v['url']?>',this)" date-type="3"><?php echo $v['response_param'] ?></td>
+								
 								<td><?php echo date('Y-m-d H:i:s',$v['createtime']);?></td>
 								<td><?php echo $v['type'];?></td>
 							</tr>
@@ -70,6 +78,8 @@ use yii\widgets\LinkPager;
 		}); 
 		return false;
 	}
+
+    
 </script>
 
 

@@ -99,26 +99,27 @@ class AdminController extends Controller
 				}else{
 					$arr[$k]['type'] = '电脑发送';
 				}
-			}
-			
-		}
-	
-		
+                $string = json_decode($v['response_param']);
+                $arr[$k]['response_param'] = json_encode($string,JSON_UNESCAPED_UNICODE);
 
+			}
+		}
+        
 		return $this->render('Index', [
             'list' => $arr,
 			'page' => $pagination,
         ]);
     }
 
+    /**
+     * 分页的详细内容
+     *
+     */
 	public function actionDisplayContent()
 	{
 		$request = Yii::$app->request;
 		$type    = $request->get('type');
 		$id      = $request->get('id');
-		
-		
-
 		
 		$rc = $this->api_accept_model->where(['id'=>$id])->one();
 		if(empty($rc)){
@@ -135,6 +136,10 @@ class AdminController extends Controller
 			$result = 'info';
 		}
 		
+        $string = json_decode($rc['response_param']);
+        $rc['response_param'] = json_encode($string,JSON_UNESCAPED_UNICODE);
+        
+
 		return $this->renderPartial('DisplayContent', [
             'info' => $rc,
 			'result'=>$result,
