@@ -7,6 +7,8 @@ use yii\filters\AccessControl;
 use yii\web\Controller;
 use yii\filters\VerbFilter;
 use app\models\ApiAcceptLog;
+use app\models\ApiPushLog;
+use app\models\ApiAppUser;
 use yii\data\Pagination;
 
 
@@ -15,16 +17,21 @@ class AdminController extends Controller
 {
 
 	protected $api_accept_model;
+    protected $api_push_log_model;
+	protected $api_app_user_model;
 
 	public function init()
 	{
 		$this->api_accept_model = ApiAcceptLog::find();
+        $this->api_push_log_model = ApiPushLog::find();
+		$this->api_app_user_model = ApiAppUser::find();
+    
 	}
 
     /**
      * @inheritdoc
      */
-    public function behaviors()
+   /* public function behaviors()
     {
         return [
 			//行为，每次请求的时候都调用行为
@@ -46,12 +53,12 @@ class AdminController extends Controller
                 ],
             ],
         ];
-    }
+    }*/
 
     /**
      * @inheritdoc
      */
-    public function actions()
+    /*public function actions()
     {
         return [
             'error' => [
@@ -62,7 +69,7 @@ class AdminController extends Controller
                 'fixedVerifyCode' => YII_ENV_TEST ? 'testme' : null,
             ],
         ];
-    }
+    }*/
 
     /**
      * Displays homepage.
@@ -111,42 +118,68 @@ class AdminController extends Controller
         ]);
     }
 
-    /**
-     * 分页的详细内容
-     *
-     */
-	public function actionDisplayContent()
-	{
-		$request = Yii::$app->request;
-		$type    = $request->get('type');
-		$id      = $request->get('id');
-		
-		$rc = $this->api_accept_model->where(['id'=>$id])->one();
-		if(empty($rc)){
-			exit('空数据');
-		}
 
-		if($type == '1'){
-			$result = 'request_url';
-		}else if($type == '2'){
-			$result = 'request_param';
-		}else if($type == '3'){
-			$result = 'response_param';
-		}else if($type == '4'){
-			$result = 'info';
-		}
-		
-        $string = json_decode($rc['response_param']);
-        $rc['response_param'] = json_encode($string,JSON_UNESCAPED_UNICODE);
+    
+    public function actionPushIndex()
+    {
+
+        //查询所有数据
+		$count = $this->api_push_log_model->count();
         
+		// 使用总数来创建一个分页对象
+		$pagination = new Pagination(['totalCount' => $count]);
 
-		return $this->renderPartial('DisplayContent', [
-            'info' => $rc,
-			'result'=>$result,
+		$list = $this->api_push_log_model->offset($pagination->offset)
+						->orderBy('id desc')
+						->limit($pagination->limit)
+                        ->asArray()
+						->all();
+	
+		if(!empty($list)){
+			foreach($list as $k=>$v){
+               
+                $user_array = '';
+                $user = '';
+                $display_array = '';
+                
+                $list[$k]['sender'] = json_encode(json_decode($v['sender'],true),JSON_UNESCAPED_UNICODE);
+                $list[$k]['text'] = json_encode(json_decode($v['text'],true),JSON_UNESCAPED_UNICODE);
+                $list[$k]['return_info'] = json_encode(json_decode($v['return_info'],true),JSON_UNESCAPED_UNICODE);
+                
+                if($v['send_port'] == '1'){
+                    $list[$k]['type'] = '极光推送';
+                }else{
+                    $list[$k]['type'] = '友盟推送';
+                }
+                
+                if(!empty($v['user_id'])){
+                    $user_array = explode(',',$v['user_id']);
+                  
+                    foreach($user_array as $kk=>$vv){
+                        if(empty($vv)){
+                            continue;
+                        }
+                       
+                        $user[] = $this->api_app_user_model->where(['user_id'=>$vv])->select(['user_name'])->asArray()->one()['user_name'];
+                        $display_array = implode(',',$user);
+                    }
+                }
+
+                $list[$k]['display_array'] = $display_array;
+
+			}
+		}
+        
+		return $this->render('PushIndex', [
+            'list' => $list,
+			'page' => $pagination,
         ]);
+    }
 
-	}
 
+
+
+    
 
     
 }
